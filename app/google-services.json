@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "129629600014",
+    "project_id": "raspberry-test-ee991",
+    "storage_bucket": "raspberry-test-ee991.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:129629600014:android:696f235ff112ae1618ff5f",
+        "android_client_info": {
+          "package_name": "com.example.sensor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAq3xxhtuV8oHiMMxpKTx5M64OcqsZYG6Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
