@@ -42,20 +42,22 @@
         app:layout_constraintVertical_bias="0.692">
 
         <TextView
+            android:id="@+id/humidityTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
-            android:text="습도: 50%"
+            android:text="습도: "
             android:textColor="@color/black"
             android:textSize="16sp"/>
 
         <TextView
+            android:id="@+id/phTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginTop="40dp"
-            android:text="pH: 5.9"
+            android:text="pH: "
             android:textColor="@color/black"
             android:textSize="16sp"/>
 
