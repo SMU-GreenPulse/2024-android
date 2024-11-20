@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
@@ -46,6 +47,8 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val chatButton = view.findViewById<RelativeLayout>(R.id.chatBtn)
+
         // Firebase 데이터 로드 함수 호출
         fetchSensorData()
 
@@ -55,6 +58,12 @@ class HomeFragment : Fragment() {
         // 이미지뷰 클릭 이벤트 (이미지 선택)
         binding.userImageView.setOnClickListener {
             pickImageFromGallery()
+        }
+
+        //chatting 화면으로 전환
+        chatButton.setOnClickListener {
+            val intent = Intent(requireContext(), ChatActivity::class.java)
+            startActivity(intent)
         }
     }
 
