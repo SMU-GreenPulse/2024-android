@@ -1,10 +1,30 @@
-package com.example.sensor.network.model
+data class ChatRequest(
+    val messages: List<Message>,
+    val model: String = "gpt-3.5-turbo",
+    val temperature: Double = 0.7
+)
 
-// ChatGPT 응답 데이터 모델
 data class ChatResponse(
-    val choices: List<Choice>         // 응답 선택지 리스트
+    val id: String,
+    val choices: List<Choice>,
+    val created: Long,
+    val model: String,
+    val usage: Usage
 )
 
 data class Choice(
-    val message: Message              // 선택지에 포함된 메시지
+    val index: Int,
+    val message: Message,
+    val finishReason: String
+)
+
+data class Message(
+    val role: String,
+    val content: String
+)
+
+data class Usage(
+    val promptTokens: Int,
+    val completionTokens: Int,
+    val totalTokens: Int
 )

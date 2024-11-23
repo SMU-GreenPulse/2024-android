@@ -1,6 +1,7 @@
 package com.example.sensor.network
 
 import retrofit2.http.Body
+import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 
@@ -26,10 +27,10 @@ data class Choice(
 
 // Retrofit API 인터페이스 정의
 interface ChatGptApi {
-    @Headers(
-        "Content-Type: application/json",
-        "Authorization: Bearer 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"
-    )
+    @Headers("Content-Type: application/json")
     @POST("v1/chat/completions")
-    suspend fun getChatResponse(@Body request: ChatRequest): ChatResponse
+    suspend fun getChatResponse(
+        @Header("Authorization") authorization: String,
+        @Body request: ChatRequest
+    ): ChatResponse
 }

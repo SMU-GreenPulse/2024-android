@@ -47,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Send"
-            android:backgroundTint="#EFEFEF"
+            android:backgroundTint="#81c147"
             android:textColor="@android:color/white"
             android:paddingHorizontal="16dp" />
     </LinearLayout>

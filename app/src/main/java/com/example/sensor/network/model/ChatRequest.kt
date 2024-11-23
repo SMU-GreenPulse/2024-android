@@ -1,13 +1,24 @@
 package com.example.sensor.network.model
 
-// 사용자 메시지 요청 데이터 모델
 data class ChatRequest(
-    val model: String,                // 사용할 모델 이름 (예: "gpt-3.5-turbo")
-    val messages: List<Message>       // 메시지 리스트
+    val model: String = "gpt-3.5-turbo",    // 기본 모델값 설정
+    val messages: List<Message>,             // 필수: 메시지 리스트
+    val temperature: Double = 0.7,           // 응답의 무작위성 조절 (0.0 ~ 1.0)
+    val maxTokens: Int = 1000,              // 응답 최대 토큰 수
+    val topP: Double = 1.0,                 // 토큰 샘플링 확률
+    val frequencyPenalty: Double = 0.0,     // 단어 반복 패널티 (-2.0 ~ 2.0)
+    val presencePenalty: Double = 0.0,      // 주제 반복 패널티 (-2.0 ~ 2.0)
+    val stream: Boolean = false             // 스트리밍 응답 여부
 )
 
-// 메시지 데이터 모델 (요청과 응답에서 공통으로 사용됨)
 data class Message(
-    val role: String,                 // 메시지 역할 (user/assistant/system)
-    val content: String               // 메시지 내용
-)
+    val role: String,                       // user, assistant, system
+    val content: String,                    // 메시지 내용
+    val name: String? = null                // 선택적: 메시지 발신자 이름
+) {
+    companion object {
+        const val ROLE_USER = "user"
+        const val ROLE_ASSISTANT = "assistant"
+        const val ROLE_SYSTEM = "system"
+    }
+}
