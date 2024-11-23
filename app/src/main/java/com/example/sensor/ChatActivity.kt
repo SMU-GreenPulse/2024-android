@@ -1,93 +1,113 @@
 package com.example.sensor
 
-import android.content.Intent
+import android.media.MediaDataSource
+import android.media.MediaPlayer
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sensor.databinding.ActivityChatBinding
+import com.example.sensor.network.OpenAiTtsService
 import com.example.sensor.ui.ChatAdapter
+import com.example.sensor.ui.ChatMessage
 import com.example.sensor.viewmodel.ChatViewModel
-import java.util.Locale
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class ChatActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
+class ChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityChatBinding
     private val viewModel: ChatViewModel by viewModels()
     private lateinit var chatAdapter: ChatAdapter
-    private lateinit var textToSpeech: TextToSpeech
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // TextToSpeech 초기화
-        textToSpeech = TextToSpeech(this, this)
+        initRecyclerView()
+        setupSendButton()
+        observeChatResponses()
+    }
 
-        // RecyclerView 초기화
+    private fun initRecyclerView() {
         chatAdapter = ChatAdapter(emptyList())
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@ChatActivity)
             adapter = chatAdapter
         }
+    }
 
-        // 메시지 전송 버튼 클릭 리스너
+    private fun setupSendButton() {
         binding.sendButton.setOnClickListener {
-            val userMessage = binding.messageInput.text.toString()
+            val userMessage = binding.messageInput.text.toString().trim()
             if (userMessage.isNotBlank()) {
                 viewModel.sendMessage(userMessage)
                 binding.messageInput.text.clear()
             }
         }
+    }
 
-        // ViewModel의 LiveData를 관찰하여 RecyclerView 업데이트 및 TTS로 챗봇 응답 읽기
+    private fun observeChatResponses() {
         viewModel.chatResponses.observe(this) { messages ->
-            chatAdapter = ChatAdapter(messages)
-            binding.recyclerView.adapter = chatAdapter
-            binding.recyclerView.scrollToPosition(messages.size - 1) // 최신 메시지로 스크롤
+            updateChatAdapter(messages)
+            playLastChatGptResponse(messages)
+        }
+    }
 
-            // 마지막 메시지가 ChatGPT 응답인지 확인 후 TTS로 읽기
-            val lastMessage = messages.lastOrNull()
-            if (lastMessage != null && !lastMessage.isUser) { // 챗봇 응답일 때만 읽음
-                speak(lastMessage.message) // TTS 호출
+    private fun updateChatAdapter(messages: List<ChatMessage>) {
+        chatAdapter = ChatAdapter(messages)
+        binding.recyclerView.adapter = chatAdapter
+        binding.recyclerView.scrollToPosition(messages.size - 1)
+    }
+
+    private fun playLastChatGptResponse(messages: List<ChatMessage>) {
+        val lastMessage = messages.lastOrNull()
+        if (lastMessage != null && !lastMessage.isUser) {
+            playTtsWithOpenAi(lastMessage.message)
+        }
+    }
+
+    private fun playTtsWithOpenAi(text: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val audioBytes = OpenAiTtsService.getTtsAudioBytes(text)
+                withContext(Dispatchers.Main) {
+                    playAudio(audioBytes)
+                }
+            } catch (e: Exception) {
+                Log.e("TTS", "오디오 재생 실패: ${e.message}")
             }
         }
     }
 
-    // TextToSpeech 초기화 완료 시 호출
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = textToSpeech.setLanguage(Locale.KOREAN)
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.e("TTS", "한국어 데이터가 없거나 지원되지 않습니다.")
-                installVoiceData()
-            }
-        } else {
-            Log.e("TTS", "TTS 초기화 실패")
+    private fun playAudio(audioBytes: ByteArray) {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer().apply {
+            setDataSource(ByteArrayMediaDataSource(audioBytes))
+            prepare()
+            start()
         }
     }
 
-    // 텍스트를 음성으로 읽는 함수
-    private fun speak(text: String) {
-        if (::textToSpeech.isInitialized) {
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    private class ByteArrayMediaDataSource(private val data: ByteArray) : MediaDataSource() {
+        override fun close() {}
+        override fun readAt(position: Long, buffer: ByteArray, offset: Int, size: Int): Int {
+            val remaining = data.size - position.toInt()
+            if (remaining <= 0) return -1
+            val copyLength = minOf(remaining, size)
+            System.arraycopy(data, position.toInt(), buffer, offset, copyLength)
+            return copyLength
         }
-    }
-
-    // TTS 데이터 설치 유도
-    private fun installVoiceData() {
-        val installIntent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
-        startActivity(installIntent)
+        override fun getSize(): Long = data.size.toLong()
     }
 
     override fun onDestroy() {
-        if (::textToSpeech.isInitialized) {
-            textToSpeech.stop()
-            textToSpeech.shutdown()
-        }
         super.onDestroy()
+        mediaPlayer?.release()
     }
 }
