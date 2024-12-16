@@ -1,7 +1,7 @@
 package com.example.sensor.network.model
 
 data class ChatRequest(
-    val model: String = "gpt-3.5-turbo",    // 기본 모델값 설정
+    val model: String = "gpt-4o",    // 기본 모델값 설정
     val messages: List<Message>,             // 필수: 메시지 리스트
     val temperature: Double = 0.7,           // 응답의 무작위성 조절 (0.0 ~ 1.0)
     val maxTokens: Int = 1000,              // 응답 최대 토큰 수

@@ -68,4 +68,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7") // LiveData
     implementation ("androidx.activity:activity-ktx:1.9.3")
     implementation ("androidx.fragment:fragment-ktx:1.8.5")
+    implementation ("com.squareup.okhttp3:okhttp:4.11.0")
+
 }
