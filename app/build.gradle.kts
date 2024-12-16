@@ -58,7 +58,7 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.github.bumptech.glide:glide:4.15.1")
     implementation("com.google.firebase:firebase-storage:21.0.1")
-    implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.9.22") // Kotlin 최신 버전
+    implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.9.24") // Kotlin 최신 버전
 
     // chat
     implementation("com.squareup.retrofit2:retrofit:2.9.0") // Retrofit

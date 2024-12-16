@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -28,8 +30,11 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     // Firebase Database와 Storage 참조 설정
-    private val databaseReference = FirebaseDatabase.getInstance().getReference("sensorData")
+    private val databaseReference = FirebaseDatabase.getInstance().getReference("sensor_data")
     private val storageReference: StorageReference = FirebaseStorage.getInstance().reference.child("images")
+
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var runnable: Runnable
 
     private val IMAGE_PICK_CODE = 1000
     private var imageUri: Uri? = null
@@ -50,7 +55,10 @@ class HomeFragment : Fragment() {
         val chatButton = view.findViewById<RelativeLayout>(R.id.chatBtn)
 
         // Firebase 데이터 로드 함수 호출
-        fetchSensorData()
+        //fetchSensorData()
+
+        // 주기적으로 Firebase 데이터 로드
+        startFetchingSensorData()
 
         // 저장된 이미지 불러오기
         loadSavedImage()
@@ -67,14 +75,36 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun startFetchingSensorData() {
+        runnable = object : Runnable {
+            override fun run() {
+                fetchSensorData()
+                handler.postDelayed(this, 2000) // 2초마다 실행
+            }
+        }
+        handler.post(runnable)
+    }
+
     private fun fetchSensorData() {
-        // Firebase Database에서 센서 데이터 로드
-        databaseReference.addValueEventListener(object : ValueEventListener {
+        databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val humidity = snapshot.child("humidity").getValue(Double::class.java) ?: 0.0
-                val pH = snapshot.child("ph").getValue(Double::class.java) ?: 0.0
-                binding.humidityTextView.text = "습도: $humidity"
-                binding.phTextView.text = "pH: $pH"
+                // 여러 데이터 항목 처리
+                val sensorDataList = mutableListOf<SensorDTO>()
+
+                for (childSnapshot in snapshot.children) {
+                    val data = childSnapshot.getValue(SensorDTO::class.java)
+                    if (data != null) {
+                        sensorDataList.add(data)
+                    }
+                }
+
+                // 첫 번째 항목의 값 표시 (예시)
+                if (sensorDataList.isNotEmpty()) {
+                    val latestData = sensorDataList.last() // 가장 마지막 항목 가져오기
+                    binding.tempTextView.text = "온도: ${latestData.temperature_c}°C"
+                    binding.humidityTextView.text = "습도: ${latestData.humidity}%"
+                    binding.soilHumidityTextView.text = "토양 습도: ${latestData.soil_moisture}%"
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -152,6 +182,7 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null // 메모리 누수 방지
+        handler.removeCallbacks(runnable) // 핸들러 작업 중지
+        _binding = null
     }
 }

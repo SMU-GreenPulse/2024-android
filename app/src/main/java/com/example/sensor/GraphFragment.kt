@@ -42,62 +42,11 @@ class GraphFragment : Fragment() {
 
         // LineChart 업데이트
         updateLineChartWithHumidity(entries, targetWeight)
-        updateLineChartWithPh(entries, targetWeight)
     }
 
     // 습도 그래프 업데이트 함수
     private fun updateLineChartWithHumidity(entries: List<Entry>, targetWeight: BigDecimal?) {
         val lineChart = requireView().findViewById<LineChart>(R.id.lineChart1)
-
-        // entries가 비어있으면 기본값으로 처리
-        val mutableEntries = if (entries.isEmpty()) mutableListOf(Entry(0f, 0f)) else entries.toMutableList()
-
-        val dataSet = LineDataSet(mutableEntries, "뇌파").apply {
-            color = Color.parseColor("#FFBF00")
-            setCircleColor(Color.parseColor("#FFBF00"))
-            circleRadius = 5f
-            lineWidth = 3f
-            mode = LineDataSet.Mode.LINEAR
-        }
-
-        // x축 설정
-        lineChart.xAxis.apply {
-            axisMinimum = 0f
-            axisMaximum = 6f
-            position = XAxis.XAxisPosition.BOTTOM
-            granularity = 1f
-            setLabelCount(7, true)
-            valueFormatter = IndexAxisValueFormatter(arrayOf("1", "2", "3", "4", "5", "6", "7"))
-        }
-
-        // y축 설정 및 목표 몸무게 라인 추가
-        lineChart.axisLeft.apply {
-            axisMinimum = 0f
-            axisMaximum = 15f
-            removeAllLimitLines()
-
-            targetWeight?.let { weight ->
-                val limitLine = LimitLine(weight.toFloat(), "기준 뇌파").apply {
-                    lineColor = Color.parseColor("#B40404")
-                    lineWidth = 2f
-                }
-                addLimitLine(limitLine)
-            }
-        }
-
-        // 오른쪽 y축 숨기기
-        lineChart.axisRight.isEnabled = false
-
-        // LineData 설정
-        lineChart.data = LineData(dataSet)
-
-        // 그래프 업데이트
-        lineChart.invalidate()
-    }
-
-    // pH 그래프 업데이트 함수
-    private fun updateLineChartWithPh(entries: List<Entry>, targetWeight: BigDecimal?) {
-        val lineChart = requireView().findViewById<LineChart>(R.id.lineChart2)
 
         // entries가 비어있으면 기본값으로 처리
         val mutableEntries = if (entries.isEmpty()) mutableListOf(Entry(0f, 0f)) else entries.toMutableList()
