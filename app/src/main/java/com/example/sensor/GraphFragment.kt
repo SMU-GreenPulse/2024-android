@@ -2,6 +2,7 @@ package com.example.sensor
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,9 +14,16 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import java.math.BigDecimal
 
 class GraphFragment : Fragment() {
+
+    private val databaseReference = FirebaseDatabase.getInstance().getReference("sensor_data")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -27,31 +35,37 @@ class GraphFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 임의의 데이터 엔트리 생성
-        val entries = listOf(
-            Entry(1f, 5f),
-            Entry(2f, 8f),
-            Entry(3f, 12f),
-            Entry(4f, 5f),
-            Entry(5f, 10f),
-            Entry(6f, 12f)
-        )
-
-        // 목표 몸무게 설정 (임의의 값)
-        val targetWeight = BigDecimal(10)
-
-        // LineChart 업데이트
-        updateLineChartWithHumidity(entries, targetWeight)
+        // 최근 7개의 토양 습도 데이터를 가져와서 그래프에 표시
+        fetchRecentSoilMoistureData()
     }
 
-    // 습도 그래프 업데이트 함수
-    private fun updateLineChartWithHumidity(entries: List<Entry>, targetWeight: BigDecimal?) {
+    private fun fetchRecentSoilMoistureData() {
+        databaseReference.orderByChild("timestamp").limitToLast(7)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val entries = mutableListOf<Entry>()
+                    var index = 0f
+
+                    for (data in snapshot.children) {
+                        val soilMoisture = data.child("soil_moisture").getValue(Double::class.java) ?: 0.0
+                        entries.add(Entry(index, soilMoisture.toFloat()))
+                        index++
+                    }
+                    updateLineChartWithHumidity(entries)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("GraphFragment", "Database Error: ${error.message}")
+                }
+            })
+    }
+
+    private fun updateLineChartWithHumidity(entries: List<Entry>) {
         val lineChart = requireView().findViewById<LineChart>(R.id.lineChart1)
 
-        // entries가 비어있으면 기본값으로 처리
         val mutableEntries = if (entries.isEmpty()) mutableListOf(Entry(0f, 0f)) else entries.toMutableList()
 
-        val dataSet = LineDataSet(mutableEntries, "뇌파").apply {
+        val dataSet = LineDataSet(mutableEntries, "토양 습도").apply {
             color = Color.parseColor("#FFBF00")
             setCircleColor(Color.parseColor("#FFBF00"))
             circleRadius = 5f
@@ -59,38 +73,28 @@ class GraphFragment : Fragment() {
             mode = LineDataSet.Mode.LINEAR
         }
 
-        // x축 설정
+        // X축 설정
         lineChart.xAxis.apply {
-            axisMinimum = 0f
-            axisMaximum = 6f
+            axisMinimum = 0f  // 최소값 0
+            axisMaximum = 6f  // 최대값 6
             position = XAxis.XAxisPosition.BOTTOM
-            granularity = 1f
+            granularity = 1f  // 간격을 1로 설정
             setLabelCount(7, true)
             valueFormatter = IndexAxisValueFormatter(arrayOf("1", "2", "3", "4", "5", "6", "7"))
         }
 
-        // y축 설정 및 목표 몸무게 라인 추가
+        // Y축 설정
         lineChart.axisLeft.apply {
-            axisMinimum = 0f
-            axisMaximum = 15f
+            axisMinimum = 30f  // Y축 최소값
+            axisMaximum = 100f // Y축 최대값
             removeAllLimitLines()
-
-            targetWeight?.let { weight ->
-                val limitLine = LimitLine(weight.toFloat(), "기준 뇌파").apply {
-                    lineColor = Color.parseColor("#B40404")
-                    lineWidth = 2f
-                }
-                addLimitLine(limitLine)
-            }
         }
 
-        // 오른쪽 y축 숨기기
+        // 오른쪽 Y축 숨기기
         lineChart.axisRight.isEnabled = false
 
-        // LineData 설정
+        // 데이터 설정 및 그래프 갱신
         lineChart.data = LineData(dataSet)
-
-        // 그래프 업데이트
         lineChart.invalidate()
     }
 }

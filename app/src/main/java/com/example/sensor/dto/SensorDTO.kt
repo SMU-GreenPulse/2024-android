@@ -1,4 +1,4 @@
-package com.example.sensor
+package com.example.sensor.dto
 
 data class SensorDTO(
     val humidity: Double = 0.0,

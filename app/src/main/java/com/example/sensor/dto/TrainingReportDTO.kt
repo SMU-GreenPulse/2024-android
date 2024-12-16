@@ -1,4 +1,4 @@
-package com.example.sensor
+package com.example.sensor.dto
 
 data class TrainingReportDTO(
     var date: String = "",
