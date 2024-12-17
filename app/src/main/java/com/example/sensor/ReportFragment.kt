@@ -2,62 +2,69 @@ package com.example.sensor
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.sensor.dto.TrainingReportDTO
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.database.*
 
 class ReportFragment : Fragment() {
 
+    private lateinit var database: DatabaseReference
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: TrainingReportAdapter
-    private val reportList = mutableListOf<TrainingReportDTO>()
+    private lateinit var detectionAdapter: DetectionAdapter
+    private val detectionList = mutableListOf<DetectionItem>()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_report, container, false)
-
-        // RecyclerView 설정
-        recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-
-        // 구분선 추가
-        val dividerItemDecoration = DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL)
-        recyclerView.addItemDecoration(dividerItemDecoration)
-
-        // 어댑터 설정
-        adapter = TrainingReportAdapter(reportList)
-        recyclerView.adapter = adapter
-
-        // Firebase에서 데이터 로드
-        loadReportsFromFirebase()
-
-        return view
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_report, container, false)
     }
 
-    private fun loadReportsFromFirebase() {
-        val database = Firebase.database.reference.child("detections")
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        database.get().addOnSuccessListener { dataSnapshot ->
-            val reportList = mutableListOf<TrainingReportDTO>()
+        recyclerView = view.findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        detectionAdapter = DetectionAdapter(detectionList)
+        recyclerView.adapter = detectionAdapter
 
-            for (reportSnapshot in dataSnapshot.children) {
-                val report = reportSnapshot.getValue(TrainingReportDTO::class.java)
-                if (report != null) {
-                    reportList.add(report)
+        // Firebase 초기화
+        database = FirebaseDatabase.getInstance().getReference("detections")
+        fetchDetectionData()
+    }
+
+    private fun fetchDetectionData() {
+        database.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                detectionList.clear()
+                for (data in snapshot.children) {
+                    val detections = data.child("detections")
+                    val healthy = detections.child("healthy").getValue(Int::class.java) ?: 0
+                    val powdery = detections.child("powdery").getValue(Int::class.java) ?: 0
+                    val fusarium = detections.child("fusarium").getValue(Int::class.java) ?: 0
+                    val fileUrl = data.child("file_url").getValue(String::class.java) ?: ""
+                    val timestamp = data.child("timestamp").getValue(String::class.java) ?: ""
+
+                    detectionList.add(
+                        DetectionItem(
+                            healthy = healthy,
+                            powdery = powdery,
+                            fusarium= fusarium,
+                            file_url = fileUrl,
+                            timestamp = timestamp
+                        )
+                    )
                 }
+                detectionAdapter.notifyDataSetChanged()
             }
 
-            // RecyclerView 업데이트
-            recyclerView.adapter = TrainingReportAdapter(reportList)
-        }.addOnFailureListener { exception ->
-            Log.e("ReportFragment", "Error loading data from Firebase: ${exception.message}")
-        }
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("ReportFragment", "Database Error: ${error.message}")
+            }
+        })
     }
-
 }

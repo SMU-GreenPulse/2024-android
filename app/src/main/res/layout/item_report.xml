@@ -1,34 +1,31 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/tvTrainingDate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="기록 날짜 예)2024.10.17 15:00"
-        android:textSize="16sp"
-        android:textColor="@android:color/black"
-        android:textStyle="bold"/>
+    android:padding="10dp">
 
     <ImageView
-        android:id="@+id/ivGraph"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:scaleType="centerCrop"
-        android:src="@drawable/sample_image"
-        android:layout_marginBottom="5dp"
-        android:layout_marginTop="5dp"/>
+        android:id="@+id/itemImage"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="fitCenter"/>
 
     <TextView
-        android:id="@+id/detect"
+        android:id="@+id/itemDetections"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="식물 상태 예) 건강함"
+        android:textColor="@color/black"
         android:textSize="16sp"
-        android:textColor="@android:color/black"
-        android:textStyle="bold"/>
+        android:text="Detections: "/>
+
+    <TextView
+        android:id="@+id/itemTimestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/gray"
+        android:textSize="14sp"
+        android:text="Timestamp: "/>
 
 </LinearLayout>

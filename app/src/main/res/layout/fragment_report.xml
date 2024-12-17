@@ -15,15 +15,6 @@
         android:textColor="@color/black"
         android:textSize="16sp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:layout_marginStart="10dp"
-        android:text="최근 pH 용액 펌프 작동 날짜\t\t\t: 2024.10.26"
-        android:textColor="@color/black"
-        android:textSize="16sp"/>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
