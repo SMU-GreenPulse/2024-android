@@ -37,9 +37,9 @@ class MainActivity : AppCompatActivity() {
                         .commit()
                     true
                 }
-                R.id.graphFragment -> {
+                R.id.chatFragment -> {
                     supportFragmentManager.beginTransaction()
-                        .replace(R.id.main_container, GraphFragment())
+                        .replace(R.id.main_container, ChatFragment())
                         .commit()
                     true
                 }

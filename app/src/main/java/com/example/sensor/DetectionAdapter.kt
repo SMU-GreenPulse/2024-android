@@ -33,14 +33,15 @@ class DetectionAdapter(private val detectionList: List<DetectionItem>) :
 
     override fun onBindViewHolder(holder: DetectionViewHolder, position: Int) {
         val item = detectionList[position]
-        // 0이 아닌 항목만 리스트에 추가
-        val detectionList = mutableListOf<String>()
-        if (item.healthy != 0) detectionList.add("Healthy: ${item.healthy}")
-        if (item.powdery != 0) detectionList.add("Powdery: ${item.powdery}")
-        if (item.fusarium != 0) detectionList.add("Fusarium: ${item.fusarium}")
 
-        // 리스트를 쉼표로 구분된 문자열로 합치기
-        holder.detectionText.text = detectionList.joinToString(", ")
+        // 상태를 판별하여 표시
+        val status = when {
+            item.healthy >= item.powdery && item.healthy >= item.fusarium -> "건강함"
+            item.powdery >= item.fusarium -> "흰가루병"
+            else -> "시들음병"
+        }
+
+        holder.detectionText.text = "현재상태: $status"
 
         holder.timestampText.text = "촬영시간: ${item.timestamp}"
 

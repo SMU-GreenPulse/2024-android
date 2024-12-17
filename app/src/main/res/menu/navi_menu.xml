@@ -12,8 +12,8 @@
         android:icon="@drawable/navi_home"/>
 
     <item
-        android:id="@+id/graphFragment"
-        android:title="그래프"
-        android:icon="@drawable/navi_graph"/>
+        android:id="@+id/chatFragment"
+        android:title="채팅"
+        android:icon="@drawable/navi_chat"/>
 
 </menu>
