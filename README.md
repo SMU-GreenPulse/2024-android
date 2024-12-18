@@ -16,15 +16,15 @@
 ## 📱 GreenPulse 애플리케이션
 <div style="display: flex; justify-content: space-around; text-align: center;">
     <div>
-        <img src="img_1.png" alt="Image 1" width="90%">
+        <img src="img_1.png" alt="Image 1" width="30%">
         <p><메인 화면></p>
     </div>
     <div>
-        <img src="img_2.png" alt="Image 2" width="90%">
+        <img src="img_2.png" alt="Image 2" width="30%">
         <p><채팅 화면></p>
     </div>
     <div>
-        <img src="img_3.png" alt="Image 3" width="90%">
+        <img src="img_3.png" alt="Image 3" width="30%">
         <p><기록 화면></p>
     </div>
 </div>
