@@ -32,6 +32,7 @@ class HomeFragment : Fragment() {
 
     // Firebase Database와 Storage 참조 설정
     private val databaseReference = FirebaseDatabase.getInstance().getReference("sensor_data")
+    private val userImagesReference = FirebaseDatabase.getInstance().getReference("user_images")
     private val storageReference: StorageReference = FirebaseStorage.getInstance().reference.child("images")
 
     private val handler = Handler(Looper.getMainLooper())
@@ -53,8 +54,6 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val chatButton = view.findViewById<RelativeLayout>(R.id.chatBtn)
-
         // Firebase 데이터 로드 함수 호출
         //fetchSensorData()
 
@@ -67,12 +66,6 @@ class HomeFragment : Fragment() {
         // 이미지뷰 클릭 이벤트 (이미지 선택)
         binding.userImageView.setOnClickListener {
             pickImageFromGallery()
-        }
-
-        //chatting 화면으로 전환
-        chatButton.setOnClickListener {
-            val intent = Intent(requireContext(), ChatActivity::class.java)
-            startActivity(intent)
         }
     }
 
@@ -102,9 +95,12 @@ class HomeFragment : Fragment() {
                 // 첫 번째 항목의 값 표시 (예시)
                 if (sensorDataList.isNotEmpty()) {
                     val latestData = sensorDataList.last() // 가장 마지막 항목 가져오기
-                    binding.tempTextView.text = "온도: ${latestData.temperature_c}°C"
-                    binding.humidityTextView.text = "습도: ${latestData.humidity}%"
-                    binding.soilHumidityTextView.text = "토양 습도: ${latestData.soil_moisture}%"
+
+                    val formattedSoilMoisture = String.format("%.1f", latestData.soil_moisture)
+
+                    binding.tempTextView.text = "온도 \uD83C\uDF21\uFE0F : ${latestData.temperature_c}°C"
+                    binding.humidityTextView.text = "습도 \uD83D\uDCA6 : ${latestData.humidity}%"
+                    binding.soilHumidityTextView.text = "토양 습도 \uD83E\uDEB4 : ${formattedSoilMoisture}%"
                 }
             }
 
@@ -151,11 +147,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun saveImageUrlToDatabase(imageUrl: String) {
-        // Firebase Database에 이미지 URL 저장
-        databaseReference.child("userImage").setValue(imageUrl)
+        // user_images 노드에 이미지 URL 저장
+        userImagesReference.child("userImage").setValue(imageUrl)
             .addOnCompleteListener {
                 if (it.isSuccessful) {
                     loadSavedImage() // 저장 후 이미지를 다시 로드
+                    Toast.makeText(requireContext(), "이미지 저장 완료", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(requireContext(), "이미지 저장 실패", Toast.LENGTH_SHORT).show()
                 }
@@ -163,8 +160,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadSavedImage() {
-        // Firebase Database에서 이미지 URL 가져와서 ImageView에 표시
-        databaseReference.child("userImage").addListenerForSingleValueEvent(object : ValueEventListener {
+        // user_images 노드에서 이미지 URL 가져오기
+        userImagesReference.child("userImage").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val imageUrl = snapshot.getValue(String::class.java)
                 if (!imageUrl.isNullOrEmpty()) {
@@ -180,7 +177,6 @@ class HomeFragment : Fragment() {
             }
         })
     }
-
     override fun onDestroyView() {
         super.onDestroyView()
         handler.removeCallbacks(runnable) // 핸들러 작업 중지
